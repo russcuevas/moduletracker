@@ -2,13 +2,11 @@
 require 'database/connection.php';
 session_start();
 
-// Redirect if user is not logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: index.php");
-    exit;
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 'student') {
+    header('location: index.php');
+    exit();
 }
 
-// Fetch academic strands from the database
 $stmt = $conn->prepare("SELECT id, strand_name FROM tbl_academic_strands");
 $stmt->execute();
 $strands = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -21,7 +19,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $grade_level = $_POST["grade_level"];
     $section = $_POST["section"];
 
-    // Insert into tbl_information
     $stmt = $conn->prepare("INSERT INTO tbl_information (user_id, semester, academic_strand_id, grade_level, section) 
                             VALUES (:user_id, :semester, :academic_strand_id, :grade_level, :section)");
     $stmt->execute([
@@ -32,7 +29,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ":section" => $section
     ]);
 
-    // Redirect to dashboard
     header("Location: profile.php");
     exit;
 }
