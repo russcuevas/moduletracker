@@ -2,9 +2,9 @@
 session_start();
 require 'database/connection.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 'student') {
-    header('location: index.php');
-    exit();
+if (!isset($_SESSION["user_id"])) {
+    header("Location: index.php");
+    exit;
 }
 
 $user_id = $_SESSION["user_id"];

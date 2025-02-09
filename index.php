@@ -22,7 +22,7 @@ if (isset($_POST['login'])) {
         $_SESSION['user_type'] = $user['type'];
 
         if ($user['type'] == 'teacher') {
-            header('location: admin/dashboard.php');
+            header('location: admin/search.php');
         } else {
             header('location: profile.php');
         }
