@@ -68,6 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Edit Subjects</title>
     <link href="bootstrap.min.css" rel="stylesheet">
     <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
         .editing {
             background-color: yellow;
         }

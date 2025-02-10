@@ -34,40 +34,102 @@ if (isset($_POST['login'])) {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gen T Deleon National High School</title>
+    <title>Login | Gen T Deleon National High School</title>
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 80px auto;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+        }
+
+        .toggle-password {
+            cursor: pointer;
+        }
+
+        .btn-outline-primary {
+            background-color: black;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Sign In</h1>
 
-    <?php if (isset($_SESSION['error'])): ?>
-        <p style="color: red;"><?= $_SESSION['error'];
-                                unset($_SESSION['error']); ?>
-        </p>
-    <?php endif; ?>
+    <div class="login-container">
+        <div class="card p-4">
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <img src="logo.png" alt="Logo" class="me-2" style="height: 50px;">
+                <h3 class="mb-0">Sign In</h3>
+            </div>
 
-    <form action="" method="POST">
-        <label>Email: </label><br>
-        <input type="email" name="email" required><br>
+            <!-- Error Message -->
+            <?php if (isset($_SESSION['error'])) : ?>
+                <div class="alert alert-danger" role="alert">
+                    <?= $_SESSION['error'];
+                    unset($_SESSION['error']); ?>
+                </div>
+            <?php endif; ?>
 
-        <label>Password: </label><br>
-        <input type="password" name="password" required><br>
+            <form action="" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Email:</label>
+                    <input style="border: 2px solid black !important;" type="email" name="email" class="form-control" required>
+                </div>
 
-        <label>Login as:</label><br>
-        <select name="type" required>
-            <option value="teacher">Teacher</option>
-            <option value="student">Student</option>
-        </select><br>
+                <div class="mb-3">
+                    <label class="form-label">Password:</label>
+                    <div class="input-group">
+                        <input style="border: 2px solid black !important;" type="password" name="password" class="form-control" id="password" required>
+                        <button class="btn btn-outline-primary toggle-password" type="button">
+                            👁
+                        </button>
+                    </div>
+                </div>
 
-        <button type="submit" name="login">Login</button>
-        <a href="register.php">Sign up here</a>
-    </form>
+                <div class="mb-3">
+                    <label class="form-label">Login as:</label>
+                    <select style="border: 2px solid black !important;" name="type" class="form-select" required>
+                        <option value="teacher">Teacher</option>
+                        <option value="student">Student</option>
+                    </select>
+                </div>
+
+                <button type="submit" name="login" class="btn btn-primary">Login</button>
+                <div class="mt-3">
+                    <a href="register.php" style="text-decoration: none;">Click to sign up</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector(".toggle-password").addEventListener("click", function() {
+            let passwordField = document.getElementById("password");
+            passwordField.type = passwordField.type === "password" ? "text" : "password";
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 
 </html>

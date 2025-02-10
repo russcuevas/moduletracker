@@ -56,6 +56,11 @@ if (!empty($academic_strand_id)) {
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+    </style>
 </head>
 
 <body>

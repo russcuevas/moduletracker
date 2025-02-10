@@ -13,25 +13,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $fullname = "";
     }
 
-    $stmt = $conn->prepare("INSERT INTO tbl_users (email, password, type, fullname) VALUES (:email, :password, :type, :fullname)");
-    $stmt->execute([
-        ":email" => $email,
-        ":password" => $password, // Plain text password
-        ":type" => $type,
-        ":fullname" => $fullname
-    ]);
+    // Check if the email already exists
+    $check_email = $conn->prepare("SELECT * FROM tbl_users WHERE email = :email");
+    $check_email->execute([":email" => $email]);
 
-    // Store session and redirect
-    $user_id = $conn->lastInsertId();
-    $_SESSION["user_id"] = $user_id;
-    $_SESSION["user_type"] = $type;
-
-    if ($type === "teacher") {
-        header("Location: admin/search.php");
+    if ($check_email->rowCount() > 0) {
+        $_SESSION["error"] = "Email is already taken. Please use a different email.";
     } else {
-        header("Location: information.php");
+        // Insert the new user
+        $stmt = $conn->prepare("INSERT INTO tbl_users (email, password, type, fullname) VALUES (:email, :password, :type, :fullname)");
+        $stmt->execute([
+            ":email" => $email,
+            ":password" => $password, // Plain text password (should be hashed)
+            ":type" => $type,
+            ":fullname" => $fullname
+        ]);
+
+        // Store session and redirect
+        $user_id = $conn->lastInsertId();
+        $_SESSION["user_id"] = $user_id;
+        $_SESSION["user_type"] = $type;
+
+        if ($type === "teacher") {
+            header("Location: admin/search.php");
+        } else {
+            header("Location: information.php");
+        }
+        exit;
     }
-    exit;
 }
 ?>
 
@@ -41,43 +50,110 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Gen T Deleon National High School</title>
+    <title>Sign Up | Gen T Deleon National High School</title>
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .register-container {
+            max-width: 400px;
+            margin: 80px auto;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+        }
+
+        .toggle-password {
+            cursor: pointer;
+        }
+
+        .btn-outline-primary {
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="register-container">
+        <div class="card p-4">
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <img src="logo.png" alt="Logo" class="me-2" style="height: 50px;">
+                <h3 class="mb-0">Sign Up</h3>
+            </div>
+
+            <!-- Error Message -->
+            <?php if (isset($_SESSION['error'])) : ?>
+                <div class="alert alert-danger" role="alert">
+                    <?= $_SESSION['error'];
+                    unset($_SESSION['error']); ?>
+                </div>
+            <?php endif; ?>
+
+            <form action="" method="POST">
+                <div id="fullname-container" class="mb-3">
+                    <label class="form-label">Full Name:</label>
+                    <input style="border: 2px solid black !important;" type="text" name="fullname" id="fullname" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email:</label>
+                    <input style="border: 2px solid black !important;" type="email" name="email" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password:</label>
+                    <div class="input-group">
+                        <input style="border: 2px solid black !important;" type="password" name="password" class="form-control" id="password" required>
+                        <button class="btn btn-outline-primary toggle-password" type="button">
+                            👁
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Type:</label>
+                    <select style="border: 2px solid black !important;" name="type" id="type" class="form-select" required onchange="toggleFullNameField()">
+                        <option value="teacher" selected>Teacher</option>
+                        <option value="student">Student</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+                <div class="mt-3">
+                    <a href="index.php" style="text-decoration: none;">Already have an account? Login here</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggleFullNameField() {
-            var typeSelect = document.getElementById("type");
-            var fullNameField = document.getElementById("fullname-container");
+            let typeSelect = document.getElementById("type");
+            let fullNameField = document.getElementById("fullname-container");
             fullNameField.style.display = (typeSelect.value === "student") ? "none" : "block";
         }
 
         window.onload = function() {
             toggleFullNameField();
         };
+
+        document.querySelector(".toggle-password").addEventListener("click", function() {
+            let passwordField = document.getElementById("password");
+            passwordField.type = passwordField.type === "password" ? "text" : "password";
+        });
     </script>
-</head>
 
-<body>
-    <h1>Sign Up</h1>
-    <form action="" method="POST">
-        <div id="fullname-container">
-            <label>Full Name:</label><br>
-            <input type="text" name="fullname" id="fullname"><br>
-        </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-        <label>Email:</label><br>
-        <input type="email" name="email" required><br>
-
-        <label>Password:</label><br>
-        <input type="password" name="password" required><br>
-
-        <label>Type:</label><br>
-        <select name="type" id="type" onchange="toggleFullNameField()" required>
-            <option value="teacher" selected>Teacher</option>
-            <option value="student">Student</option>
-        </select><br>
-
-        <button type="submit">Sign Up</button>
-        <a href="index.php">Login here</a>
-    </form>
 </body>
 
 </html>
