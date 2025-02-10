@@ -2,9 +2,9 @@
 require '../database/connection.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 'teacher') {
-    header('location: index.php');
-    exit();
+if (!isset($_SESSION["user_id"]) || ($_SESSION["user_type"] !== "teacher")) {
+    header("Location: ../index.php");
+    exit;
 }
 
 $strand_id = $_GET['strand_id'] ?? '';
@@ -22,37 +22,39 @@ $subjectStmt = $conn->prepare("SELECT id, subject_name FROM tbl_subjects WHERE s
 $subjectStmt->execute([':strand_id' => $strand_id]);
 $subjects = $subjectStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Handle Adding Subject
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_subject'])) {
-    $subject_name = trim($_POST['subject_name']);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['add_subject'])) {
+        $subject_name = trim($_POST['subject_name']);
 
-    if (!empty($subject_name)) {
-        $insertStmt = $conn->prepare("INSERT INTO tbl_subjects (strand_id, subject_name) VALUES (:strand_id, :subject_name)");
-        $insertStmt->execute([':strand_id' => $strand_id, ':subject_name' => $subject_name]);
+        if (!empty($subject_name)) {
+            $insertStmt = $conn->prepare("INSERT INTO tbl_subjects (strand_id, subject_name) VALUES (:strand_id, :subject_name)");
+            $insertStmt->execute([':strand_id' => $strand_id, ':subject_name' => $subject_name]);
+            $_SESSION['success'] = "Subject added successfully!";
+            header("Location: edit_subject.php?strand_id=$strand_id&back_url=" . urlencode($back_url));
+            exit();
+        }
+    }
+
+    if (isset($_POST['delete_subject'])) {
+        $subject_id = $_POST['subject_id'];
+        $deleteStmt = $conn->prepare("DELETE FROM tbl_subjects WHERE id = :subject_id");
+        $deleteStmt->execute([':subject_id' => $subject_id]);
+        $_SESSION['success'] = "Subject deleted successfully!";
         header("Location: edit_subject.php?strand_id=$strand_id&back_url=" . urlencode($back_url));
         exit();
     }
-}
 
-// Handle Deleting Subject
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_subject'])) {
-    $subject_id = $_POST['subject_id'];
-    $deleteStmt = $conn->prepare("DELETE FROM tbl_subjects WHERE id = :subject_id");
-    $deleteStmt->execute([':subject_id' => $subject_id]);
-    header("Location: edit_subject.php?strand_id=$strand_id&back_url=" . urlencode($back_url));
-    exit();
-}
+    if (isset($_POST['update_subject'])) {
+        $subject_id = $_POST['subject_id'];
+        $updated_subject_name = trim($_POST['updated_subject_name']);
 
-// Handle Updating Subject
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_subject'])) {
-    $subject_id = $_POST['subject_id'];
-    $updated_subject_name = trim($_POST['updated_subject_name']);
-
-    if (!empty($updated_subject_name)) {
-        $updateStmt = $conn->prepare("UPDATE tbl_subjects SET subject_name = :subject_name WHERE id = :subject_id");
-        $updateStmt->execute([':subject_name' => $updated_subject_name, ':subject_id' => $subject_id]);
-        header("Location: edit_subject.php?strand_id=$strand_id&back_url=" . urlencode($back_url));
-        exit();
+        if (!empty($updated_subject_name)) {
+            $updateStmt = $conn->prepare("UPDATE tbl_subjects SET subject_name = :subject_name WHERE id = :subject_id");
+            $updateStmt->execute([':subject_name' => $updated_subject_name, ':subject_id' => $subject_id]);
+            $_SESSION['success'] = "Subject updated successfully!";
+            header("Location: edit_subject.php?strand_id=$strand_id&back_url=" . urlencode($back_url));
+            exit();
+        }
     }
 }
 ?>
@@ -77,6 +79,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_subject'])) {
         <h3>Edit Subjects for <?= htmlspecialchars($strand['strand_name']) ?></h3>
         <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-primary mb-3">Back to Dashboard</a>
 
+        <!-- Success Message Alert -->
+        <?php if (isset($_SESSION['success'])) : ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?= $_SESSION['success'] ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['success']); ?>
+        <?php endif; ?>
+
         <table class="table table-dark">
             <thead>
                 <tr>
@@ -95,9 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_subject'])) {
                                 <input type="text" id="subject-<?= $subject['id'] ?>" value="<?= htmlspecialchars($subject['subject_name']) ?>" class="form-control" disabled>
                             </td>
                             <td>
-                                <!-- Update Button -->
                                 <button class="btn btn-warning btn-sm" onclick="enableEditing(<?= $subject['id'] ?>)">Update</button>
-                                <!-- Delete Form -->
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="subject_id" value="<?= $subject['id'] ?>">
                                     <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this subject?')">Delete</button>
@@ -113,23 +122,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_subject'])) {
             </tbody>
         </table>
 
-        <!-- Update Subject Form -->
         <form method="POST" id="update-form" class="mb-3" style="display: none;">
             <input type="hidden" id="update-subject-id" name="subject_id">
-            <div class="mb-2">
+            <div class="col-md-6 mb-2">
                 <label for="updated_subject_name" class="form-label">Modify Subject Name:</label>
-                <input type="text" id="updated_subject_name" name="updated_subject_name" class="form-control" required>
+                <input style="border: 2px solid black !important;" type="text" id="updated_subject_name" name="updated_subject_name" class="form-control" required>
             </div>
             <button type="submit" name="update_subject" class="btn btn-success">Save Changes</button>
             <button type="button" class="btn btn-warning" onclick="cancelEditing()">Cancel</button>
         </form>
 
-        <!-- Add Subject Form -->
         <h4>Add New Subject</h4>
         <form method="POST" class="mb-3">
-            <div class="mb-2">
+            <div class="col-md-6 mb-2">
                 <label for="subject_name" class="form-label">Subject Name:</label>
-                <input type="text" id="subject_name" name="subject_name" class="form-control" required>
+                <input style="border: 2px solid black !important;" type="text" id="subject_name" name="subject_name" class="form-control" required>
             </div>
             <button type="submit" name="add_subject" class="btn btn-primary">Add Subject</button>
         </form>
