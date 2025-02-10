@@ -68,14 +68,20 @@ $modules = $moduleStmt->fetchAll(PDO::FETCH_KEY_PAIR);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gen T Deleon National High School</title>
+
+    <!-- Bootstrap CSS -->
     <link href="bootstrap-profile.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
     <style>
-        /* Custom Styling */
         body {
             background-color: #f8f9fa;
         }
-
 
         h4 {
             font-weight: 600;
@@ -115,85 +121,86 @@ $modules = $moduleStmt->fetchAll(PDO::FETCH_KEY_PAIR);
         <!-- Tabs Navigation -->
         <ul class="nav nav-tabs mb-3" id="semesterTabs">
             <li class="nav-item">
-                <a class="nav-link active" id="tab1" data-bs-toggle="tab" href="#firstSemester">1st Semester</a>
+                <a class="nav-link active" data-bs-toggle="tab" href="#firstSemester">1st Semester</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="tab2" data-bs-toggle="tab" href="#secondSemester">2nd Semester</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#secondSemester">2nd Semester</a>
             </li>
         </ul>
 
         <div class="tab-content">
-            <!-- 1st Semester Table -->
             <div class="tab-pane fade show active" id="firstSemester">
                 <h4 class="mb-3">1st Semester Subjects</h4>
                 <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Student Name</th>
-                            <?php foreach ($subjects1 as $subject) : ?>
-                                <th><?= htmlspecialchars($subject["subject_name"]); ?></th>
-                            <?php endforeach; ?>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
                     <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td><?= htmlspecialchars($profile["fullname"]); ?></td>
-                            <?php foreach ($subjects1 as $subject) : ?>
+                        <?php foreach ($subjects1 as $subject) : ?>
+                            <tr>
+                                <th><?= htmlspecialchars($subject["subject_name"]); ?></th>
                                 <td>
                                     <?php if (isset($modules[$subject["id"]]) && $modules[$subject["id"]]) : ?>
                                         ✔
                                     <?php else : ?>
-                                        <a href="update_module.php?subject_id=<?= $subject["id"]; ?>" class="btn btn-primary btn-sm btn-custom">
-                                            Mark as Checked <span style="font-size: 18px;">✔</span>
+                                        <a href="update_module.php?subject_id=<?= $subject["id"]; ?>" class="btn btn-primary btn-sm">
+                                            Mark as Checked ✔
                                         </a>
                                     <?php endif; ?>
                                 </td>
-                            <?php endforeach; ?>
-                            <td><a href="reset_modules.php?semester=1st Semester" class="btn btn-danger btn-custom">Reset</a></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <tr>
+                            <th>Action</th>
+                            <td>
+                                <a href="reset_modules.php?semester=1st Semester" class="btn btn-danger">Reset</a>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
+
             </div>
 
             <!-- 2nd Semester Table -->
             <div class="tab-pane fade" id="secondSemester">
                 <h4 class="mb-3">2nd Semester Subjects</h4>
                 <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Student Name</th>
-                            <?php foreach ($subjects2 as $subject) : ?>
-                                <th><?= htmlspecialchars($subject["subject_name"]); ?></th>
-                            <?php endforeach; ?>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
                     <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td><?= htmlspecialchars($profile["fullname"]); ?></td>
-                            <?php foreach ($subjects2 as $subject) : ?>
+                        <?php foreach ($subjects2 as $subject) : ?>
+                            <tr>
+                                <th><?= htmlspecialchars($subject["subject_name"]); ?></th>
                                 <td>
                                     <?php if (isset($modules[$subject["id"]]) && $modules[$subject["id"]]) : ?>
                                         ✔
                                     <?php else : ?>
-                                        <a href="update_module.php?subject_id=<?= $subject["id"]; ?>" class="btn btn-primary btn-sm btn-custom">
-                                            Mark as Checked <span style="font-size: 18px;">✔</span>
+                                        <a href="update_module.php?subject_id=<?= $subject["id"]; ?>" class="btn btn-primary btn-sm">
+                                            Mark as Checked ✔
                                         </a>
                                     <?php endif; ?>
                                 </td>
-                            <?php endforeach; ?>
-                            <td><a href="reset_modules.php?semester=2nd Semester" class="btn btn-danger btn-custom">Reset</a></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <tr>
+                            <th>Action</th>
+                            <td>
+                                <a href="reset_modules.php?semester=2nd Semester" class="btn btn-danger">Reset</a>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <!-- Initialize DataTables -->
+    <script>
+        $(document).ready(function() {
+            $('#table1, #table2').DataTable({
+                "paging": true, // Enables pagination
+                "searching": true, // Enables search bar
+                "ordering": true, // Enables column sorting
+                "info": true, // Shows table info
+                "scrollX": true // Enables horizontal scrolling
+            });
+        });
+    </script>
 </body>
 
 </html>

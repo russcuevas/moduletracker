@@ -92,49 +92,48 @@ if (!empty($academic_strand_id) && !empty($grade_level) && !empty($semester)) {
                 class="btn btn-success" style="text-decoration: none; margin-top: -5px">CLICK HERE TO MODIFY SUBJECTS</a>
         </div>
 
-        <table id="studentsTable" class="table table-bordered mt-3">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Student Name</th>
-                    <?php if (!empty($subjects)) : ?>
-                        <?php foreach ($subjects as $subject) : ?>
-                            <th><?= htmlspecialchars($subject['subject_name']) ?></th>
-                        <?php endforeach; ?>
-                    <?php else : ?>
-                        <th colspan="1">No subjects available</th>
-                    <?php endif; ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($students)) {
-                    $counter = 1;
-                    foreach ($students as $student) {
-                        $moduleStmt = $conn->prepare("SELECT subject_id, module_received FROM tbl_students_subjects WHERE student_id = :student_id");
-                        $moduleStmt->execute([':student_id' => $student['id']]);
-                        $modules = $moduleStmt->fetchAll(PDO::FETCH_KEY_PAIR);
-                ?>
-                        <tr>
-                            <td><?= $counter++ ?></td>
-                            <td><?= htmlspecialchars($student['fullname']) ?></td>
-                            <?php if (!empty($subjects)) : ?>
-                                <?php foreach ($subjects as $subject) : ?>
-                                    <td>
-                                        <?= isset($modules[$subject['id']]) && $modules[$subject['id']] ? '✔' : '❌' ?>
-                                    </td>
-                                <?php endforeach; ?>
-                            <?php else : ?>
-                                <td>No subjects</td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php }
-                } else { ?>
+        <div class="table-container mt-3">
+            <table id="studentsTable" class="table table-bordered mt-3">
+                <thead>
                     <tr>
-                        <td colspan="<?= count($subjects) + 2 ?>">No students found.</td>
+                        <th>Student Name</th>
+                        <?php if (!empty($subjects)) : ?>
+                            <?php foreach ($subjects as $subject) : ?>
+                                <th><?= htmlspecialchars($subject['subject_name']) ?></th>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <th colspan="1">No subjects available</th>
+                        <?php endif; ?>
                     </tr>
-                <?php } ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php if (!empty($students)) {
+                        foreach ($students as $student) {
+                            $moduleStmt = $conn->prepare("SELECT subject_id, module_received FROM tbl_students_subjects WHERE student_id = :student_id");
+                            $moduleStmt->execute([':student_id' => $student['id']]);
+                            $modules = $moduleStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+                    ?>
+                            <tr>
+                                <td><?= htmlspecialchars($student['fullname']) ?></td>
+                                <?php if (!empty($subjects)) : ?>
+                                    <?php foreach ($subjects as $subject) : ?>
+                                        <td>
+                                            <?= isset($modules[$subject['id']]) && $modules[$subject['id']] ? '✔' : '❌' ?>
+                                        </td>
+                                    <?php endforeach; ?>
+                                <?php else : ?>
+                                    <td>No subjects</td>
+                                <?php endif; ?>
+                            </tr>
+                        <?php }
+                    } else { ?>
+                        <tr>
+                            <td colspan="<?= count($subjects) + 2 ?>">No students found.</td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
