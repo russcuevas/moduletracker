@@ -57,6 +57,17 @@ $strands = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <hr>
 
             <form action="dashboard.php" method="GET">
+
+                <div class="mb-3">
+                    <label class="form-label">Select Semester:</label>
+                    <select style="border: 2px solid black;" name="semester" id="semester" class="form-select" required>
+                        <option value="">Select Semester</option>
+                        <option value="1st Semester">1st Semester</option>
+                        <option value="2nd Semester">2nd Semester</option>
+                    </select>
+                </div>
+
+
                 <div class="mb-3">
                     <label class="form-label">Select Grade Level:</label>
                     <select style="border: 2px solid black;" name="grade_level" id="grade_level" class="form-select" required>

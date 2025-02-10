@@ -25,18 +25,31 @@ if (!$profile) {
 
 $strand_id = $profile["academic_strand_id"];
 
-$subjectQuery = "
+// Fetch 1st Semester subjects
+$subjectQuery1 = "
     SELECT id, subject_name 
     FROM tbl_subjects 
-    WHERE strand_id = :strand_id AND grade_level = :grade_level
+    WHERE strand_id = :strand_id AND grade_level = :grade_level AND semester = '1st Semester'
 ";
-$subjectStmt = $conn->prepare($subjectQuery);
-$subjectStmt->execute([
+$subjectStmt1 = $conn->prepare($subjectQuery1);
+$subjectStmt1->execute([
     ":strand_id" => $strand_id,
     ":grade_level" => $profile["grade_level"]
 ]);
-$subjects = $subjectStmt->fetchAll(PDO::FETCH_ASSOC);
+$subjects1 = $subjectStmt1->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch 2nd Semester subjects
+$subjectQuery2 = "
+    SELECT id, subject_name 
+    FROM tbl_subjects 
+    WHERE strand_id = :strand_id AND grade_level = :grade_level AND semester = '2nd Semester'
+";
+$subjectStmt2 = $conn->prepare($subjectQuery2);
+$subjectStmt2->execute([
+    ":strand_id" => $strand_id,
+    ":grade_level" => $profile["grade_level"]
+]);
+$subjects2 = $subjectStmt2->fetchAll(PDO::FETCH_ASSOC);
 
 $moduleQuery = "
     SELECT subject_id, module_received 
@@ -56,59 +69,131 @@ $modules = $moduleStmt->fetchAll(PDO::FETCH_KEY_PAIR);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gen T Deleon National High School</title>
     <link href="bootstrap-profile.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Custom Styling */
+        body {
+            background-color: #f8f9fa;
+        }
+
+
+        h4 {
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-link {
+            border-radius: 8px 8px 0 0;
+            color: #495057;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #1a1a1a;
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container mt-4">
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <h3>My Profile</h3>
             <a href="logout.php" class="btn btn-danger">Logout</a>
         </div>
+
         <h4><?= htmlspecialchars($profile["fullname"]); ?></h4>
-        <h4><?= htmlspecialchars($profile["grade_level"]); ?> - <?= htmlspecialchars($profile["section"]); ?></h4>
-        <h4><?= htmlspecialchars($profile["strand_name"]); ?></h4>
-        <?php
-        if (isset($_SESSION["success"])) : ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <h5><?= htmlspecialchars($profile["grade_level"]); ?> - <?= htmlspecialchars($profile["section"]); ?></h5>
+        <h5><?= htmlspecialchars($profile["strand_name"]); ?></h5>
+
+        <?php if (isset($_SESSION["success"])) : ?>
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
                 <?= $_SESSION["success"]; ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <?php unset($_SESSION["success"]);
-            ?>
+            <?php unset($_SESSION["success"]); ?>
         <?php endif; ?>
-        <table class="table table-bordered" style="border: 3px solid black !important;">
-            <thead>
-                <tr>
-                    <th style="border: 3px solid black !important;">#</th>
-                    <th style="border: 3px solid black !important;">Student Name</th>
-                    <?php foreach ($subjects as $subject) : ?>
-                        <th style="border: 3px solid black !important;"><?= htmlspecialchars($subject["subject_name"]); ?></th>
-                    <?php endforeach; ?>
-                    <th style="border: 3px solid black !important;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="border: 3px solid black !important;">1</td>
-                    <td style="border: 3px solid black !important;"><?= htmlspecialchars($profile["fullname"]); ?></td>
-                    <?php foreach ($subjects as $subject) : ?>
-                        <td style="border: 3px solid black !important;">
-                            <?php if (isset($modules[$subject["id"]]) && $modules[$subject["id"]]) : ?>
-                                ✔
-                            <?php else : ?>
-                                <a href="update_module.php?subject_id=<?= $subject["id"]; ?>" class="btn btn-success btn-sm">
-                                    Mark as Checked <span style="font-size: 20px;">✔</span>
-                                </a>
-                            <?php endif; ?>
-                        </td>
-                    <?php endforeach; ?>
-                    <td style="border: 3px solid black !important;"><a href="reset_modules.php" class="btn btn-danger">Reset</a></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-3" id="semesterTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="tab1" data-bs-toggle="tab" href="#firstSemester">1st Semester</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab2" data-bs-toggle="tab" href="#secondSemester">2nd Semester</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- 1st Semester Table -->
+            <div class="tab-pane fade show active" id="firstSemester">
+                <h4 class="mb-3">1st Semester Subjects</h4>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student Name</th>
+                            <?php foreach ($subjects1 as $subject) : ?>
+                                <th><?= htmlspecialchars($subject["subject_name"]); ?></th>
+                            <?php endforeach; ?>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td><?= htmlspecialchars($profile["fullname"]); ?></td>
+                            <?php foreach ($subjects1 as $subject) : ?>
+                                <td>
+                                    <?php if (isset($modules[$subject["id"]]) && $modules[$subject["id"]]) : ?>
+                                        ✔
+                                    <?php else : ?>
+                                        <a href="update_module.php?subject_id=<?= $subject["id"]; ?>" class="btn btn-primary btn-sm btn-custom">
+                                            Mark as Checked <span style="font-size: 18px;">✔</span>
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+                            <?php endforeach; ?>
+                            <td><a href="reset_modules.php?semester=1st Semester" class="btn btn-danger btn-custom">Reset</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 2nd Semester Table -->
+            <div class="tab-pane fade" id="secondSemester">
+                <h4 class="mb-3">2nd Semester Subjects</h4>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student Name</th>
+                            <?php foreach ($subjects2 as $subject) : ?>
+                                <th><?= htmlspecialchars($subject["subject_name"]); ?></th>
+                            <?php endforeach; ?>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td><?= htmlspecialchars($profile["fullname"]); ?></td>
+                            <?php foreach ($subjects2 as $subject) : ?>
+                                <td>
+                                    <?php if (isset($modules[$subject["id"]]) && $modules[$subject["id"]]) : ?>
+                                        ✔
+                                    <?php else : ?>
+                                        <a href="update_module.php?subject_id=<?= $subject["id"]; ?>" class="btn btn-primary btn-sm btn-custom">
+                                            Mark as Checked <span style="font-size: 18px;">✔</span>
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+                            <?php endforeach; ?>
+                            <td><a href="reset_modules.php?semester=2nd Semester" class="btn btn-danger btn-custom">Reset</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

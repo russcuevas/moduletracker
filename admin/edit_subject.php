@@ -9,9 +9,9 @@ if (!isset($_SESSION["user_id"]) || ($_SESSION["user_type"] !== "teacher")) {
 
 $strand_id = $_GET['strand_id'] ?? '';
 $grade_level = $_GET['grade_level'] ?? '';
+$semester = $_GET['semester'] ?? '';
 $back_url = $_GET['back_url'] ?? 'dashboard.php';
 
-// Validate strand
 $strandStmt = $conn->prepare("SELECT strand_name FROM tbl_academic_strands WHERE id = :strand_id");
 $strandStmt->execute([':strand_id' => $strand_id]);
 $strand = $strandStmt->fetch(PDO::FETCH_ASSOC);
@@ -20,31 +20,35 @@ if (!$strand) {
     die("Invalid strand ID.");
 }
 
-// Fetch subjects
-$subjectStmt = $conn->prepare("SELECT id, subject_name FROM tbl_subjects WHERE strand_id = :strand_id AND grade_level = :grade_level ORDER BY subject_name");
-$subjectStmt->execute([':strand_id' => $strand_id, ':grade_level' => $grade_level]);
+$subjectStmt = $conn->prepare("SELECT id, subject_name FROM tbl_subjects WHERE strand_id = :strand_id AND grade_level = :grade_level AND semester = :semester ORDER BY subject_name");
+$subjectStmt->execute([':strand_id' => $strand_id, ':grade_level' => $grade_level, ':semester' => $semester]);
 $subjects = $subjectStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add_subject'])) {
         $subject_name = trim($_POST['subject_name']);
 
         if (!empty($subject_name)) {
-            $insertStmt = $conn->prepare("INSERT INTO tbl_subjects (strand_id, subject_name, grade_level) VALUES (:strand_id, :subject_name, :grade_level)");
-            $insertStmt->execute([':strand_id' => $strand_id, ':subject_name' => $subject_name, ':grade_level' => $grade_level]);
+            $insertStmt = $conn->prepare("INSERT INTO tbl_subjects (strand_id, subject_name, grade_level, semester) VALUES (:strand_id, :subject_name, :grade_level, :semester)");
+            $insertStmt->execute([
+                ':strand_id' => $strand_id,
+                ':subject_name' => $subject_name,
+                ':grade_level' => $grade_level,
+                ':semester' => $semester
+            ]);
             $_SESSION['success'] = "Subject added successfully!";
-            header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&back_url=" . urlencode($back_url));
+            header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&semester=$semester&back_url=" . urlencode($back_url));
             exit();
         }
     }
+
 
     if (isset($_POST['delete_subject'])) {
         $subject_id = $_POST['subject_id'];
         $deleteStmt = $conn->prepare("DELETE FROM tbl_subjects WHERE id = :subject_id");
         $deleteStmt->execute([':subject_id' => $subject_id]);
         $_SESSION['success'] = "Subject deleted successfully!";
-        header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&back_url=" . urlencode($back_url));
+        header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&semester=$semester&back_url=" . urlencode($back_url));
         exit();
     }
 
@@ -56,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $updateStmt = $conn->prepare("UPDATE tbl_subjects SET subject_name = :subject_name WHERE id = :subject_id");
             $updateStmt->execute([':subject_name' => $updated_subject_name, ':subject_id' => $subject_id]);
             $_SESSION['success'] = "Subject updated successfully!";
-            header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&back_url=" . urlencode($back_url));
+            header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&semester=$semester&back_url=" . urlencode($back_url));
             exit();
         }
     }
@@ -80,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <body>
     <div class="container mt-4">
-        <h3>Edit Subjects for <?= htmlspecialchars($strand['strand_name']) ?> - <?= htmlspecialchars($grade_level) ?></h3>
+        <h3>Edit Subjects for <?php echo $semester ?>&nbsp;<?= htmlspecialchars($strand['strand_name']) ?> - <?= htmlspecialchars($grade_level) ?></h3>
         <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-primary mb-3">Back to Dashboard</a>
 
         <?php if (isset($_SESSION['success'])) : ?>

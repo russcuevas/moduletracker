@@ -15,15 +15,17 @@ $strands = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullname = $_POST["fullname"];
+    $semester = $_POST['semester'];
     $academic_strand_id = $_POST["academic_strand_id"];
     $grade_level = $_POST["grade_level"];
     $section = $_POST["section"];
 
-    $stmt = $conn->prepare("INSERT INTO tbl_information (user_id, fullname, academic_strand_id, grade_level, section) 
-                            VALUES (:user_id, :fullname, :academic_strand_id, :grade_level, :section)");
+    $stmt = $conn->prepare("INSERT INTO tbl_information (user_id, fullname, semester, academic_strand_id, grade_level, section) 
+                            VALUES (:user_id, :fullname, :semester, :academic_strand_id, :grade_level, :section)");
     $stmt->execute([
         ":user_id" => $user_id,
         ":fullname" => $fullname,
+        ":semester" => $semester,
         ":academic_strand_id" => $academic_strand_id,
         ":grade_level" => $grade_level,
         ":section" => $section
@@ -83,6 +85,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="mb-3">
                     <label class="form-label">Full Name:</label>
                     <input type="text" name="fullname" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Semester:</label>
+                    <select name="semester" id="semester" class="form-select" required>
+                        <option value="">Select Semester</option>
+                        <option value="1st semester">1st semester</option>
+                        <option value="2nd semester">2nd semester</option>
+                    </select>
                 </div>
 
                 <div class="mb-3">

@@ -9,18 +9,17 @@ if (!isset($_SESSION["user_id"]) || ($_SESSION["user_type"] !== "teacher")) {
 
 $teacher_id = $_SESSION["user_id"];
 
-// Fetch teacher's name
 $stmt = $conn->prepare("SELECT fullname FROM tbl_users WHERE id = :teacher_id");
 $stmt->execute([':teacher_id' => $teacher_id]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 $teacher_name = $teacher ? $teacher['fullname'] : 'Teacher';
 
-// Get selected grade level, section, and academic strand ID from URL
 $grade_level = $_GET['grade_level'] ?? '';
 $section = $_GET['section'] ?? '';
 $academic_strand_id = $_GET['academic_strand_id'] ?? '';
+$semester = $_GET['semester'] ?? '';
 
-// Fetch strand name
+
 $strand_name = 'Unknown Strand';
 if (!empty($academic_strand_id)) {
     $strandStmt = $conn->prepare("SELECT strand_name FROM tbl_academic_strands WHERE id = :academic_strand_id");
@@ -29,7 +28,6 @@ if (!empty($academic_strand_id)) {
     $strand_name = $strand['strand_name'] ?? 'Unknown Strand';
 }
 
-// Fetch students based on grade level, section, and strand ID
 $stmt = $conn->prepare("SELECT u.id, u.email, i.fullname, i.grade_level, i.section, i.academic_strand_id 
                         FROM tbl_information i
                         JOIN tbl_users u ON i.user_id = u.id
@@ -43,13 +41,13 @@ $stmt->execute([
 ]);
 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch subjects based on the selected strand and grade level
 $subjects = [];
-if (!empty($academic_strand_id) && !empty($grade_level)) {
-    $subjectStmt = $conn->prepare("SELECT id, subject_name FROM tbl_subjects WHERE strand_id = :strand_id AND grade_level = :grade_level");
+if (!empty($academic_strand_id) && !empty($grade_level) && !empty($semester)) {
+    $subjectStmt = $conn->prepare("SELECT id, subject_name FROM tbl_subjects WHERE strand_id = :strand_id AND grade_level = :grade_level AND semester = :semester");
     $subjectStmt->execute([
         ':strand_id' => $academic_strand_id,
-        ':grade_level' => $grade_level
+        ':grade_level' => $grade_level,
+        ':semester' => $semester
     ]);
     $subjects = $subjectStmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -86,11 +84,11 @@ if (!empty($academic_strand_id) && !empty($grade_level)) {
             </div>
         </div>
 
-        <h3><?= htmlspecialchars($grade_level) ?> - <?= htmlspecialchars($section) ?></h3>
+        <h3><?= htmlspecialchars($grade_level) ?> - <?= htmlspecialchars($section) ?> (<?= htmlspecialchars($semester) ?>)</h3>
 
         <div class="d-flex align-items-center">
             <h4><?= htmlspecialchars($strand_name) ?> -&nbsp;</h4>
-            <a href="edit_subject.php?strand_id=<?= htmlspecialchars($academic_strand_id) ?>&grade_level=<?= htmlspecialchars($grade_level) ?>&back_url=<?= urlencode($_SERVER['REQUEST_URI']) ?>"
+            <a href="edit_subject.php?strand_id=<?= htmlspecialchars($academic_strand_id) ?>&grade_level=<?= htmlspecialchars($grade_level) ?>&semester=<?= htmlspecialchars($semester) ?>&back_url=<?= urlencode($_SERVER['REQUEST_URI']) ?>"
                 class="btn btn-success" style="text-decoration: none; margin-top: -5px">CLICK HERE TO MODIFY SUBJECTS</a>
         </div>
 
