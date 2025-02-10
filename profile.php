@@ -28,11 +28,15 @@ $strand_id = $profile["academic_strand_id"];
 $subjectQuery = "
     SELECT id, subject_name 
     FROM tbl_subjects 
-    WHERE strand_id = :strand_id
+    WHERE strand_id = :strand_id AND grade_level = :grade_level
 ";
 $subjectStmt = $conn->prepare($subjectQuery);
-$subjectStmt->execute([":strand_id" => $strand_id]);
+$subjectStmt->execute([
+    ":strand_id" => $strand_id,
+    ":grade_level" => $profile["grade_level"]
+]);
 $subjects = $subjectStmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 $moduleQuery = "
     SELECT subject_id, module_received 
@@ -51,7 +55,7 @@ $modules = $moduleStmt->fetchAll(PDO::FETCH_KEY_PAIR);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gen T Deleon National High School</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap-profile.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -63,34 +67,42 @@ $modules = $moduleStmt->fetchAll(PDO::FETCH_KEY_PAIR);
         <h4><?= htmlspecialchars($profile["fullname"]); ?></h4>
         <h4><?= htmlspecialchars($profile["grade_level"]); ?> - <?= htmlspecialchars($profile["section"]); ?></h4>
         <h4><?= htmlspecialchars($profile["strand_name"]); ?></h4>
-
-        <table class="table table-bordered">
+        <?php
+        if (isset($_SESSION["success"])) : ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?= $_SESSION["success"]; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION["success"]);
+            ?>
+        <?php endif; ?>
+        <table class="table table-bordered" style="border: 3px solid black !important;">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Student Name</th>
+                    <th style="border: 3px solid black !important;">#</th>
+                    <th style="border: 3px solid black !important;">Student Name</th>
                     <?php foreach ($subjects as $subject) : ?>
-                        <th><?= htmlspecialchars($subject["subject_name"]); ?></th>
+                        <th style="border: 3px solid black !important;"><?= htmlspecialchars($subject["subject_name"]); ?></th>
                     <?php endforeach; ?>
-                    <th>Action</th>
+                    <th style="border: 3px solid black !important;">Action</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>1</td>
-                    <td><?= htmlspecialchars($profile["fullname"]); ?></td>
+                    <td style="border: 3px solid black !important;">1</td>
+                    <td style="border: 3px solid black !important;"><?= htmlspecialchars($profile["fullname"]); ?></td>
                     <?php foreach ($subjects as $subject) : ?>
-                        <td>
+                        <td style="border: 3px solid black !important;">
                             <?php if (isset($modules[$subject["id"]]) && $modules[$subject["id"]]) : ?>
                                 ✔
                             <?php else : ?>
                                 <a href="update_module.php?subject_id=<?= $subject["id"]; ?>" class="btn btn-success btn-sm">
-                                    Mark as Checked
+                                    Mark as Checked <span style="font-size: 20px;">✔</span>
                                 </a>
                             <?php endif; ?>
                         </td>
                     <?php endforeach; ?>
-                    <td><a href="reset_modules.php" class="btn btn-danger">Reset</a></td>
+                    <td style="border: 3px solid black !important;"><a href="reset_modules.php" class="btn btn-danger">Reset</a></td>
                 </tr>
             </tbody>
         </table>

@@ -8,8 +8,10 @@ if (!isset($_SESSION["user_id"]) || ($_SESSION["user_type"] !== "teacher")) {
 }
 
 $strand_id = $_GET['strand_id'] ?? '';
+$grade_level = $_GET['grade_level'] ?? '';
 $back_url = $_GET['back_url'] ?? 'dashboard.php';
 
+// Validate strand
 $strandStmt = $conn->prepare("SELECT strand_name FROM tbl_academic_strands WHERE id = :strand_id");
 $strandStmt->execute([':strand_id' => $strand_id]);
 $strand = $strandStmt->fetch(PDO::FETCH_ASSOC);
@@ -18,19 +20,21 @@ if (!$strand) {
     die("Invalid strand ID.");
 }
 
-$subjectStmt = $conn->prepare("SELECT id, subject_name FROM tbl_subjects WHERE strand_id = :strand_id");
-$subjectStmt->execute([':strand_id' => $strand_id]);
+// Fetch subjects
+$subjectStmt = $conn->prepare("SELECT id, subject_name FROM tbl_subjects WHERE strand_id = :strand_id AND grade_level = :grade_level ORDER BY subject_name");
+$subjectStmt->execute([':strand_id' => $strand_id, ':grade_level' => $grade_level]);
 $subjects = $subjectStmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add_subject'])) {
         $subject_name = trim($_POST['subject_name']);
 
         if (!empty($subject_name)) {
-            $insertStmt = $conn->prepare("INSERT INTO tbl_subjects (strand_id, subject_name) VALUES (:strand_id, :subject_name)");
-            $insertStmt->execute([':strand_id' => $strand_id, ':subject_name' => $subject_name]);
+            $insertStmt = $conn->prepare("INSERT INTO tbl_subjects (strand_id, subject_name, grade_level) VALUES (:strand_id, :subject_name, :grade_level)");
+            $insertStmt->execute([':strand_id' => $strand_id, ':subject_name' => $subject_name, ':grade_level' => $grade_level]);
             $_SESSION['success'] = "Subject added successfully!";
-            header("Location: edit_subject.php?strand_id=$strand_id&back_url=" . urlencode($back_url));
+            header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&back_url=" . urlencode($back_url));
             exit();
         }
     }
@@ -40,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $deleteStmt = $conn->prepare("DELETE FROM tbl_subjects WHERE id = :subject_id");
         $deleteStmt->execute([':subject_id' => $subject_id]);
         $_SESSION['success'] = "Subject deleted successfully!";
-        header("Location: edit_subject.php?strand_id=$strand_id&back_url=" . urlencode($back_url));
+        header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&back_url=" . urlencode($back_url));
         exit();
     }
 
@@ -52,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $updateStmt = $conn->prepare("UPDATE tbl_subjects SET subject_name = :subject_name WHERE id = :subject_id");
             $updateStmt->execute([':subject_name' => $updated_subject_name, ':subject_id' => $subject_id]);
             $_SESSION['success'] = "Subject updated successfully!";
-            header("Location: edit_subject.php?strand_id=$strand_id&back_url=" . urlencode($back_url));
+            header("Location: edit_subject.php?strand_id=$strand_id&grade_level=$grade_level&back_url=" . urlencode($back_url));
             exit();
         }
     }
@@ -68,10 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Edit Subjects</title>
     <link href="bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
         .editing {
             background-color: yellow;
         }
@@ -80,10 +80,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <body>
     <div class="container mt-4">
-        <h3>Edit Subjects for <?= htmlspecialchars($strand['strand_name']) ?></h3>
+        <h3>Edit Subjects for <?= htmlspecialchars($strand['strand_name']) ?> - <?= htmlspecialchars($grade_level) ?></h3>
         <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-primary mb-3">Back to Dashboard</a>
 
-        <!-- Success Message Alert -->
         <?php if (isset($_SESSION['success'])) : ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <?= $_SESSION['success'] ?>
@@ -104,13 +103,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php if (!empty($subjects)) :
                     $counter = 1;
                     foreach ($subjects as $subject) : ?>
-                        <tr id="row-<?= $subject['id'] ?>">
+                        <tr>
                             <td><?= $counter++ ?></td>
                             <td>
                                 <input type="text" id="subject-<?= $subject['id'] ?>" value="<?= htmlspecialchars($subject['subject_name']) ?>" class="form-control" disabled>
                             </td>
                             <td>
-                                <button class="btn btn-warning btn-sm" onclick="enableEditing(<?= $subject['id'] ?>)">Update</button>
+                                <button class="btn btn-warning btn-sm" onclick="enableEditing(<?= $subject['id'] ?>)">Edit</button>
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="subject_id" value="<?= $subject['id'] ?>">
                                     <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this subject?')">Delete</button>
@@ -120,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <?php endforeach;
                 else : ?>
                     <tr>
-                        <td colspan="3">No subjects found.</td>
+                        <td colspan="3">No subjects found for <?= htmlspecialchars($grade_level) ?>.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

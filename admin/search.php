@@ -59,25 +59,27 @@ $strands = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <form action="dashboard.php" method="GET">
                 <div class="mb-3">
                     <label class="form-label">Select Grade Level:</label>
-                    <select style="border: 2px solid black;" name="grade_level" class="form-select" required>
+                    <select style="border: 2px solid black;" name="grade_level" id="grade_level" class="form-select" required>
+                        <option value="">Select Grade Level</option>
                         <option value="Grade 11">Grade 11</option>
                         <option value="Grade 12">Grade 12</option>
                     </select>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Select Section:</label>
-                    <select style="border: 2px solid black;" name="section" class="form-select" required>
-                        <option value="Thompson">Thompson</option>
+                    <label class="form-label">Select Academic Strand:</label>
+                    <select style="border: 2px solid black;" name="academic_strand_id" id="academic_strand" class="form-select" required>
+                        <option value="">Select Academic Strand</option>
+                        <?php foreach ($strands as $strand) : ?>
+                            <option value="<?= $strand['id']; ?>"><?= htmlspecialchars($strand['strand_name']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Select Academic Strand:</label>
-                    <select style="border: 2px solid black;" name="academic_strand_id" class="form-select" required>
-                        <?php foreach ($strands as $strand) : ?>
-                            <option value="<?= $strand['id']; ?>"><?= htmlspecialchars($strand['strand_name']); ?></option>
-                        <?php endforeach; ?>
+                    <label class="form-label">Select Section:</label>
+                    <select style="border: 2px solid black;" name="section" id="section" class="form-select" required>
+                        <option value="">Select Section</option>
                     </select>
                 </div>
 
@@ -85,6 +87,49 @@ $strands = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </form>
         </div>
     </div>
+
+    <script>
+        // Sections categorized by Grade Level and Academic Strand
+        const sections = {
+            "Grade 11": {
+                "HE": ["Ramsay"],
+                "HUMSS": ["Weber", "Marx"],
+                "ICT": ["Jobs"],
+                "STEM": ["Euclid", "Curie"],
+                "GAS": ["Darwin"],
+                "ABM": ["Pacioli"],
+                "Tourism": ["Heritage"]
+            },
+            "Grade 12": {
+                "ICT": ["Thompson", "Liskov"],
+                "ABM": ["Ayala"],
+                "HUMSS": ["Aristotle", "Durkheim"],
+                "HE": ["Ducasse", "Lawson"],
+                "STEM": ["Einstein"],
+                "GAS": ["Descartes"]
+            }
+        };
+
+        document.getElementById("grade_level").addEventListener("change", updateSections);
+        document.getElementById("academic_strand").addEventListener("change", updateSections);
+
+        function updateSections() {
+            const gradeLevel = document.getElementById("grade_level").value;
+            const strand = document.getElementById("academic_strand").selectedOptions[0]?.text;
+
+            const sectionSelect = document.getElementById("section");
+            sectionSelect.innerHTML = '<option value="">Select Section</option>'; // Reset dropdown
+
+            if (sections[gradeLevel] && sections[gradeLevel][strand]) {
+                sections[gradeLevel][strand].forEach(section => {
+                    const option = document.createElement("option");
+                    option.value = section;
+                    option.textContent = section;
+                    sectionSelect.appendChild(option);
+                });
+            }
+        }
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 

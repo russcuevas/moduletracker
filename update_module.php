@@ -29,5 +29,6 @@ if ($exists) {
 }
 
 // Redirect back to profile page
+$_SESSION["success"] = "Module successfully marked as received! ✔";
 header("Location: profile.php");
 exit;

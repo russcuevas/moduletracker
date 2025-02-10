@@ -13,9 +13,11 @@ $query = "UPDATE tbl_students_subjects SET module_received = 0 WHERE student_id 
 $stmt = $conn->prepare($query);
 
 if ($stmt->execute([":user_id" => $user_id])) {
-    header("Location: profile.php?reset=success");
-    exit;
+    $_SESSION["success"] = "All modules have been successfully reset! 🔄";
 } else {
-    header("Location: profile.php?reset=error");
-    exit;
+    $_SESSION["error"] = "Failed to reset modules. Please try again. ❌";
 }
+
+// Redirect back to profile page
+header("Location: profile.php");
+exit;
