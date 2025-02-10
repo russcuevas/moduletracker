@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="email" name="email" required><br>
         <label>Password: </label><br>
         <input type="password" name="password" required><br>
-        <label>Role: </label><br>
+        <label>Type: </label><br>
         <select name="type" required>
             <option value="teacher">Teacher</option>
             <option value="student">Student</option>

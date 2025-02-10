@@ -9,6 +9,7 @@
 
 <body>
     <h1>Module Finder</h1>
+    <a href="../logout.php">Logout</a>
     <form action="dashboard.php" method="GET">
         <label>Select semester: </label>
         <select name="semester" required>

@@ -73,7 +73,7 @@ if (!empty($students)) {
 
         <div class="d-flex align-items-center">
             <h4 class=""><?= htmlspecialchars($strand_name) ?> -&nbsp;</h4>
-            <a href="edit_subject.php?strand_id=<?= $strand_id ?>&back_url=<?= urlencode($_SERVER['REQUEST_URI']) ?>" style="text-decoration: none; margin-top: -5px">MODIFY SUBJECTS</a>
+            <a href="edit_subject.php?strand_id=<?= $strand_id ?>&back_url=<?= urlencode($_SERVER['REQUEST_URI']) ?>" style="text-decoration: none; margin-top: -5px" class="btn btn-success">CLICK HERE TO MODIFY SUBJECTS</a>
         </div>
 
         <table id="studentsTable" class="table table-dark mt-3">
