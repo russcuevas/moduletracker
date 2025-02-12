@@ -109,7 +109,7 @@ $strands = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 "STEM": ["Euclid", "Curie"],
                 "GAS": ["Darwin"],
                 "ABM": ["Pacioli"],
-                "Tourism": ["Heritage"]
+                "TOURISM": ["Heritage"]
             },
             "Grade 12": {
                 "ICT": ["Thompson", "Liskov"],
@@ -117,7 +117,7 @@ $strands = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 "HUMSS": ["Aristotle", "Durkheim"],
                 "HE": ["Ducasse", "Lawson"],
                 "STEM": ["Einstein"],
-                "GAS": ["Descartes"]
+                "GAS": ["Descartes"],
             }
         };
 
